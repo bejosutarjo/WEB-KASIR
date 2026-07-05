@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Kasir BEJO — Aplikasi Kasir Warung</title>
+<meta name="description" content="Aplikasi kasir digital untuk warung: kelola produk, stok, transaksi, dan pembayaran QRIS.">
+<meta name="theme-color" content="#0F4C3A">
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kasir BEJO">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="toast-root" class="toast-root"></div>
+
+<!-- ================= SPLASH / LOADING ================= -->
+<div id="view-splash" class="view view-splash active">
+  <div class="splash-brand">
+    <img src="icons/icon-192.png" alt="Kasir BEJO" class="splash-logo">
+    <h1>Kasir BEJO</h1>
+    <p class="splash-tag">Mudah · Cepat · Terpercaya</p>
+  </div>
+</div>
+
+<!-- ================= SETUP AWAL (hanya sekali, buat akun pemilik) ================= -->
+<div id="view-setup" class="view view-auth">
+  <div class="auth-card ticket-card">
+    <div class="ticket-notch top"></div>
+    <div class="auth-header">
+      <img src="icons/icon-96.png" class="auth-logo" alt="">
+      <h2>Aktivasi Pemilik Toko</h2>
+      <p>Ini instalasi pertama. Buat akun <strong>Pemilik</strong> untuk mengunci akses penuh ke aplikasi ini.</p>
+    </div>
+    <form id="form-setup" class="auth-form" autocomplete="off">
+      <label>Nama Toko
+        <input type="text" id="setup-store-name" placeholder="Warung Bejo" required>
+      </label>
+      <label>Nama Pemilik
+        <input type="text" id="setup-owner-name" placeholder="Nama Anda" required>
+      </label>
+      <label>Username Pemilik
+        <input type="text" id="setup-username" placeholder="owner" required autocomplete="off">
+      </label>
+      <label>Password Pemilik
+        <input type="password" id="setup-password" placeholder="Minimal 6 karakter" minlength="6" required autocomplete="new-password">
+      </label>
+      <label>Ulangi Password
+        <input type="password" id="setup-password2" placeholder="Ulangi password" minlength="6" required autocomplete="new-password">
+      </label>
+      <p class="hint-security">🔒 Password akan dienkripsi (hash) di perangkat ini dan tidak pernah ditulis di source code / repository.</p>
+      <button type="submit" class="btn btn-primary btn-block">Aktifkan & Masuk</button>
+    </form>
+    <div class="ticket-notch bottom"></div>
+  </div>
+</div>
+
+<!-- ================= LOGIN ================= -->
+<div id="view-login" class="view view-auth">
+  <div class="auth-card ticket-card">
+    <div class="ticket-notch top"></div>
+    <div class="auth-header">
+      <img src="icons/icon-96.png" class="auth-logo" alt="">
+      <h2 id="login-store-name">Kasir BEJO</h2>
+      <p>Masuk untuk mulai bertransaksi</p>
+    </div>
+
+    <div class="role-switch" id="role-switch">
+      <button type="button" class="role-btn active" data-role="kasir">Akun Kasir</button>
+      <button type="button" class="role-btn" data-role="owner">Pemilik</button>
+    </div>
+
+    <form id="form-login" class="auth-form" autocomplete="off">
+      <div id="login-username-wrap">
+        <label>Username
+          <input type="text" id="login-username" placeholder="Username" required autocomplete="off">
+        </label>
+      </div>
+      <label id="login-password-label">Password / PIN
+        <input type="password" id="login-password" placeholder="Password atau PIN" required autocomplete="current-password" inputmode="numeric">
+      </label>
+      <p class="form-error" id="login-error"></p>
+      <button type="submit" class="btn btn-primary btn-block">Masuk</button>
+    </form>
+  </div>
+</div>
+
+<!-- ================= APP SHELL (setelah login) ================= -->
+<div id="view-app" class="view view-app">
+
+  <!-- Sidebar (owner) / Topbar (kasir) -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <img src="icons/icon-72.png" alt="">
+      <div>
+        <strong id="sb-store-name">BEJO</strong>
+        <span id="sb-user-name">-</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <button class="btn btn-ghost btn-logout" id="btn-logout">⎋ Keluar</button>
+  </aside>
+
+  <div class="mobile-topbar" id="mobile-topbar">
+    <button id="btn-open-menu" class="icon-btn">☰</button>
+    <strong id="mt-title">Kasir BEJO</strong>
+    <button id="btn-mt-logout" class="icon-btn">⎋</button>
+  </div>
+
+  <main class="main-content" id="main-content">
+    <!-- konten screen di-render lewat JS ke sini -->
+  </main>
+</div>
+
+<!-- ================= MODAL ROOT (dipakai berbagai dialog) ================= -->
+<div id="modal-root" class="modal-root"></div>
+
+<!-- Libraries (dari CDN — dibutuhkan koneksi internet saat online pertama kali,
+     lalu di-cache Service Worker agar bisa dipakai offline) -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/qris.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
