@@ -127,15 +127,37 @@ document.addEventListener('submit', async (e) => {
     if(pw1.length < 6){ toast('Password minimal 6 karakter','error'); return; }
 
     const cred = await Auth.makeCredential(pw1);
-    const user = { username, name: ownerName, role:'owner', active:true, loginMode:'password', ...cred, createdAt:new Date().toISOString() };
-    await DB.add(S.STORES.users, user);
-    await saveSettingsPatch({ storeName, qrisStatic: DEFAULT_QRIS_STATIC, cashierLoginMode:'password' });
+const user = {
+    username,
+    name: ownerName,
+    role: 'owner',
+    active: true,
+    loginMode: 'password',
+    ...cred,
+    createdAt: new Date().toISOString()
+};
 
-    toast('Akun pemilik berhasil dibuat!');
-    const created = (await DB.getByIndex(S.STORES.users,'username',username))[0];
-    Auth.setSession(created);
-    state.session = Auth.getSession();
-    await enterApp();
+const id = await DB.add(S.STORES.users, user);
+
+await saveSettingsPatch({
+    storeName,
+    qrisStatic: DEFAULT_QRIS_STATIC,
+    cashierLoginMode: 'password'
+});
+
+const created = await DB.get(S.STORES.users, id);
+
+if (!created) {
+    toast('Gagal membuat akun pemilik', 'error');
+    return;
+}
+
+toast('Akun pemilik berhasil dibuat!');
+
+Auth.setSession(created);
+state.session = created;
+
+await enterApp();
   }
 });
 
